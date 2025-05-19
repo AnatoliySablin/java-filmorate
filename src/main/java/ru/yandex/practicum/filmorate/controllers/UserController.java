@@ -18,7 +18,7 @@ import java.util.Map;
 @Validated
 public class UserController {
 
-    private Map<Integer, User> users = new HashMap<>();
+    final private Map<Integer, User> users = new HashMap<>();
     private int id = 0;
 
     @PostMapping
@@ -49,8 +49,7 @@ public class UserController {
         return new ArrayList<>(users.values());
     }
 
-    @Validated
-    public void validationUser(User user) {
+    private void validationUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
