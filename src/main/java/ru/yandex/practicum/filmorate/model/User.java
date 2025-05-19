@@ -6,11 +6,13 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
 
 @Data
 @Builder
+@Validated
 public class User {
     private Integer id;
     @NotBlank

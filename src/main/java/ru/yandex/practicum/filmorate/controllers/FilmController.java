@@ -23,11 +23,12 @@ public class FilmController {
 
 
     @PostMapping
-    public void addFilm(@Valid @RequestBody Film film) {
+    public Film addFilm(@Valid @RequestBody Film film) {
         log.info("Добавляем фильм {}", film);
         film.setId(++id);
         films.put(film.getId(), film);
         log.info("{} Фильм успешно добавлен!", film);
+        return film;
     }
 
     @PutMapping

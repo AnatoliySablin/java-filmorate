@@ -5,12 +5,14 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.validation.ValidReleaseDate;
 
 import java.time.LocalDate;
 
 @Data
 @Builder
+@Validated
 public class Film {
     private Integer id;
     @NotBlank
