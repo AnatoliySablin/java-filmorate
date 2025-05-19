@@ -23,29 +23,28 @@ public class FilmController {
 
 
     @PostMapping
-    public Film addFilm(@Valid @RequestBody Film film) {
-        log.info("Добавляем фильм " + film);
+    public void addFilm(@Valid @RequestBody Film film) {
+        log.info("Добавляем фильм {}", film);
         film.setId(++id);
         films.put(film.getId(), film);
-        log.info(film + " Фильм успешно добавлен!");
-        return film;
+        log.info("{} Фильм успешно добавлен!", film);
     }
 
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
-        log.info("Обновляем фильм " + film);
+        log.info("Обновляем фильм {}", film);
         if (!films.containsKey(film.getId())) {
             log.info("Ошибка! Такой фильм не найден...!");
             throw new NotFoundException("Ошибка! Такой фильм не найден...");
         }
         films.put(film.getId(), film);
-        log.info(film + " Фильм успешно обновлен");
+        log.info("{} Фильм успешно обновлен", film);
         return film;
     }
 
     @GetMapping
     public List<Film> listFilms() {
-        log.info("Получаем список фильмов, их количество: " + films.size());
+        log.info("Получаем список фильмов, их количество: {}", films.size());
         return new ArrayList<>(films.values());
     }
 }

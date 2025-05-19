@@ -18,34 +18,33 @@ import java.util.Map;
 @Validated
 public class UserController {
 
-    final private Map<Integer, User> users = new HashMap<>();
+    private final Map<Integer, User> users = new HashMap<>();
     private int id = 0;
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) {
-        log.info("Добавляем пользователя: " + user);
+    public void addUser(@Valid @RequestBody User user) {
+        log.info("Добавляем пользователя: {}", user);
         validationUser(user);
         user.setId(++id);
         users.put(user.getId(), user);
-        log.info(user + " Пользователь успешно добавлен.");
-        return user;
+        log.info("{} Пользователь успешно добавлен.", user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        log.info("Обновляем пользователя: " + user);
+        log.info("Обновляем пользователя: {}", user);
         if (!users.containsKey(user.getId())) {
             throw new NotFoundException(user + " Такой пользователь не зарегистрирован");
         }
         validationUser(user);
         users.put(user.getId(), user);
-        log.info(user + " Пользователь успешно обновлен.");
+        log.info("{} Пользователь успешно обновлен.", user);
         return user;
     }
 
     @GetMapping
     public List<User> listUsers() {
-        log.info("Получаем список пользователей, его размер: " + users.size());
+        log.info("Получаем список пользователей, его размер: {}", users.size());
         return new ArrayList<>(users.values());
     }
 
