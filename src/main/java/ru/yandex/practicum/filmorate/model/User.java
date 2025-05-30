@@ -6,15 +6,16 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Builder
-@Validated
 public class User {
-    private Integer id;
+    private Long id;
+    private Set<Long> friends;
     @NotBlank
     @Email
     private String email;
@@ -24,4 +25,20 @@ public class User {
     private String name;
     @Past(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
+
+    public Set<Long> getFriends() {
+        if (friends == null) {
+            friends = new HashSet<Long>();
+        }
+        return friends;
+    }
+
+    public void setFriends(Long id) {
+        if (friends == null) {
+            friends = new HashSet<Long>();
+            friends.add(id);
+        } else {
+            friends.add(id);
+        }
+    }
 }
