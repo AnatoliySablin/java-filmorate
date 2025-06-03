@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,31 +30,33 @@ public class UserService {
     }
 
     public void deleteFriendById(Long id, Long friendId) {
-        User user1 = userStorage.listUsers().stream().filter(a -> a.getId() == id).findFirst().get();
+        User user1 = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
         user1.getFriends().remove(friendId);
         log.info("У " + user1 + " теперь в друзьях остались: " + user1.getFriends());
-        User user2 = userStorage.listUsers().stream().filter(a -> a.getId() == friendId).findFirst().get();
+        User user2 =
+                userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), friendId)).findFirst().get();
         user2.getFriends().remove(id);
         log.info("У " + user2 + " теперь в друзьях остались: " + user2.getFriends());
     }
 
     public Set<User> getListFriends(Long id) {
         Set<User> listFriends = new HashSet<User>();
-        User user = userStorage.listUsers().stream().filter(a -> a.getId() == id).findFirst().get();
+        User user = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
         for (Long friend : user.getFriends()) {
-            listFriends.add(userStorage.listUsers().stream().filter(a -> a.getId() == friend).findFirst().get());
+            listFriends.add(userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), friend)).findFirst().get());
         }
         return listFriends;
     }
 
     public Set<User> getListFriendsSharedWithAnotherUser(Long id, Long otherId) {
         Set<User> crossingFriendsTotal = new HashSet<User>();
-        User user1 = userStorage.listUsers().stream().filter(a -> a.getId() == id).findFirst().get();
-        User user2 = userStorage.listUsers().stream().filter(a -> a.getId() == otherId).findFirst().get();
+        User user1 = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
+        User user2 = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), otherId)).findFirst().get();
         Set<Long> crossingFriends = new HashSet<Long>((user1.getFriends()).stream()
                 .filter((user2.getFriends())::contains).collect(Collectors.toSet()));
         for (Long crossingFriend : crossingFriends) {
-            crossingFriendsTotal.add(userStorage.listUsers().stream().filter(a -> a.getId() == crossingFriend)
+            crossingFriendsTotal.add(userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(),
+                            crossingFriend))
                     .findFirst().get());
         }
         return crossingFriendsTotal;

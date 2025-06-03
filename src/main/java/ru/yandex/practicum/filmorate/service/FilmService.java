@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +29,7 @@ public class FilmService {
     }
 
     public void deleteLikeFilm(Long id, Long userId) {
-        Film film = filmStorage.listFilms().stream().filter(a -> a.getId() == id).findFirst().get();
+        Film film = filmStorage.listFilms().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
         film.getLikes().remove(userId);
         log.info("Пользователь по id: " + id + " удалил Like фильму " + film);
     }
