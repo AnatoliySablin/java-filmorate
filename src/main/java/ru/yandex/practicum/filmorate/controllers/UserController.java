@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -15,19 +13,18 @@ import java.util.Set;
 @RestController
 @RequestMapping("/users")
 @Slf4j
-@Validated
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User addUser(@RequestBody User user) {
+    public User addUser(@Valid @RequestBody User user) {
         log.info("Добавляем пользователя: " + user);
         return userService.addUser(user);
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
+    public User updateUser(@Valid @RequestBody User user) {
         log.info("Обновляем пользователя: " + user);
         return userService.updateUser(user);
     }
@@ -67,11 +64,4 @@ public class UserController {
         log.info("Удаление пользователя по id: " + friendId + " из друзей пользователя по id: " + id);
         userService.deleteFriendById(id, friendId);
     }
-
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(ValidationException.class)
-    public ValidationException handleValidationException(ValidationException exception) {
-        return exception;
-    }
-
 }
