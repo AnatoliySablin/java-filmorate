@@ -30,7 +30,8 @@ public class FilmService {
     }
 
     public void deleteLikeFilm(Long id, Long userId) {
-        Film film = filmStorage.listFilms().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().orElseThrow(() -> new NotFoundException(""));
+        Film film =
+                filmStorage.listFilms().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().orElseThrow(() -> new NotFoundException("Remove like unknown user"));
         film.getLikes().remove(userId);
         log.info("Пользователь по id: " + id + " удалил Like фильму " + film);
     }
