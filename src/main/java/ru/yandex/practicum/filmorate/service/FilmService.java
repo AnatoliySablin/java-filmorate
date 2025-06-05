@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
@@ -29,7 +30,7 @@ public class FilmService {
     }
 
     public void deleteLikeFilm(Long id, Long userId) {
-        Film film = filmStorage.listFilms().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
+        Film film = filmStorage.listFilms().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().orElseThrow(() -> new NotFoundException(""));
         film.getLikes().remove(userId);
         log.info("Пользователь по id: " + id + " удалил Like фильму " + film);
     }
