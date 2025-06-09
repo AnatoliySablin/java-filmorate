@@ -32,7 +32,7 @@ public class Film {
         return likes;
     }
 
-    public void setLikes(Long id) {
+    public void addLike(Long id) {
         if (likes == null) {
             likes = new HashSet<Long>();
             likes.add(id);

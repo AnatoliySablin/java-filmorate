@@ -25,7 +25,10 @@ public class InMemoryUserStorage implements UserStorage {
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
         log.info("Добавляем пользователя: {}", user);
-        validationUser(user);
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+            log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
+        }
         user.setId(++id);
         users.put(user.getId(), user);
         log.info("{} Пользователь успешно добавлен.", user);
@@ -38,7 +41,10 @@ public class InMemoryUserStorage implements UserStorage {
         if (!users.containsKey(user.getId())) {
             throw new NotFoundException(user + " Такой пользователь не зарегистрирован");
         }
-        validationUser(user);
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+            log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
+        }
         users.put(user.getId(), user);
         log.info("{} Пользователь успешно обновлен.", user);
         return user;
@@ -59,10 +65,4 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    private void validationUser(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
-        }
-    }
 }

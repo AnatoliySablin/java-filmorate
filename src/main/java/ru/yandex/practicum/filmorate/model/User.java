@@ -33,7 +33,7 @@ public class User {
         return friends;
     }
 
-    public void setFriends(Long id) {
+    public void addFriend(Long id) {
         if (friends == null) {
             friends = new HashSet<Long>();
             friends.add(id);
@@ -41,4 +41,6 @@ public class User {
             friends.add(id);
         }
     }
+
+
 }

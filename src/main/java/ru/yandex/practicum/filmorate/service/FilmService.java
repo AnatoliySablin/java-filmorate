@@ -8,10 +8,9 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,43 +24,40 @@ public class FilmService {
     public void addLikeFilm(Long id, Long userId) {
         userService.getUserById(userId);
         Film film = filmStorage.getFilmById(id);
-        film.setLikes(userId);
+        film.addLike(userId);
         log.info("Пользователь по id: " + userId + " поставил Like фильму " + film);
     }
 
     public void deleteLikeFilm(Long id, Long userId) {
+        if (!userService.listUsers().contains(userId)) {
+            throw new NotFoundException("Пользователь с id: " + userId + " не найден");
+        }
         Film film =
-                filmStorage.listFilms().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().orElseThrow(() -> new NotFoundException("Remove like unknown user"));
+                filmStorage.getFilmById(id);
         film.getLikes().remove(userId);
         log.info("Пользователь по id: " + id + " удалил Like фильму " + film);
     }
 
     public List<Film> getPopularFilms(Integer count) {
-        List<Film> sortedByLikesFilms = filmStorage.listFilms();
-        sortedByLikesFilms.sort(Comparator.comparingLong(o -> o.getLikes().size()));
-        Collections.reverse(sortedByLikesFilms);
-        if (count != 0 && sortedByLikesFilms.size() >= count) {
-            return sortedByLikesFilms.subList(0, count);
-        } else {
-            if (sortedByLikesFilms.size() >= 11) {
-                return sortedByLikesFilms.subList(0, 9);
-            } else {
-                return sortedByLikesFilms;
-            }
-        }
+        return filmStorage.listFilms()
+                .stream()
+                .sorted(Comparator.comparingLong(o -> o.getLikes().size()))
+                .limit(count != null ? count : Integer.MAX_VALUE)
+                .collect(Collectors.toList());
     }
+
 
     public Film getFilmById(Long id) {
         return filmStorage.getFilmById(id);
     }
 
     public Film addFilm(Film film) {
-        //filmStorage.addFilm(film);
+        filmStorage.addFilm(film);
         return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        //filmStorage.updateFilm(film);
+        filmStorage.updateFilm(film);
         return filmStorage.updateFilm(film);
     }
 

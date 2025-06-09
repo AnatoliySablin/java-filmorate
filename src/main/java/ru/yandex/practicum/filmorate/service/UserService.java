@@ -7,9 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,43 +21,41 @@ public class UserService {
     public void addFriendById(Long id, Long friendId) {
         User user1 = userStorage.getUserById(id);
         User user2 = userStorage.getUserById(friendId);
-        user1.setFriends(friendId);
-        user2.setFriends(id);
+        user1.addFriend(friendId);
+        user2.addFriend(id);
         log.info("У " + user1 + " теперь в друзьях: " + user1.getFriends());
         log.info("У " + user2 + " теперь в друзьях: " + user2.getFriends());
     }
 
     public void deleteFriendById(Long id, Long friendId) {
-        User user1 = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
+        User user1 = userStorage.getUserById(id);
         user1.getFriends().remove(friendId);
         log.info("У " + user1 + " теперь в друзьях остались: " + user1.getFriends());
         User user2 =
-                userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), friendId)).findFirst().get();
+                userStorage.getUserById(friendId);
         user2.getFriends().remove(id);
         log.info("У " + user2 + " теперь в друзьях остались: " + user2.getFriends());
     }
 
     public Set<User> getListFriends(Long id) {
-        Set<User> listFriends = new HashSet<User>();
-        User user = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
-        for (Long friend : user.getFriends()) {
-            listFriends.add(userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), friend)).findFirst().get());
-        }
-        return listFriends;
+        User user = userStorage.getUserById(id);
+        return user.getFriends()
+                .stream()
+                .map(userStorage::getUserById)
+                .collect(Collectors.toSet());
     }
 
+
     public Set<User> getListFriendsSharedWithAnotherUser(Long id, Long otherId) {
-        Set<User> crossingFriendsTotal = new HashSet<User>();
-        User user1 = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), id)).findFirst().get();
-        User user2 = userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(), otherId)).findFirst().get();
-        Set<Long> crossingFriends = new HashSet<Long>((user1.getFriends()).stream()
-                .filter((user2.getFriends())::contains).collect(Collectors.toSet()));
-        for (Long crossingFriend : crossingFriends) {
-            crossingFriendsTotal.add(userStorage.listUsers().stream().filter(a -> Objects.equals(a.getId(),
-                            crossingFriend))
-                    .findFirst().get());
-        }
-        return crossingFriendsTotal;
+        User user1 = userStorage.getUserById(id);
+        User user2 = userStorage.getUserById(otherId);
+        final Set<Long> friends = user1.getFriends();
+        final Set<Long> otherFriends = user2.getFriends();
+
+        return (Set<User>) friends.stream()
+                .filter(otherFriends::contains)
+                .map(userId -> userStorage.getUserById(userId))
+                .collect(Collectors.toList());
     }
 
     public User getUserById(Long id) {
