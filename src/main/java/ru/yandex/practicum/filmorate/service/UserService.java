@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -29,10 +30,9 @@ public class UserService {
 
     public void deleteFriendById(Long id, Long friendId) {
         User user1 = userStorage.getUserById(id);
+        User user2 = userStorage.getUserById(friendId);
         user1.getFriends().remove(friendId);
         log.info("У " + user1 + " теперь в друзьях остались: " + user1.getFriends());
-        User user2 =
-                userStorage.getUserById(friendId);
         user2.getFriends().remove(id);
         log.info("У " + user2 + " теперь в друзьях остались: " + user2.getFriends());
     }
@@ -52,10 +52,10 @@ public class UserService {
         final Set<Long> friends = user1.getFriends();
         final Set<Long> otherFriends = user2.getFriends();
 
-        return (Set<User>) friends.stream()
+        return friends.stream()
                 .filter(otherFriends::contains)
-                .map(userId -> userStorage.getUserById(userId))
-                .collect(Collectors.toList());
+                .map(userStorage::getUserById)
+                .collect(Collectors.toSet());
     }
 
     public User getUserById(Long id) {
@@ -67,6 +67,9 @@ public class UserService {
     }
 
     public User updateUser(User user) {
+        if (!userStorage.listUsers().contains(user)) {
+            throw new NotFoundException(user + " Такой пользователь не зарегистрирован");
+        }
         return userStorage.updateUser(user);
     }
 

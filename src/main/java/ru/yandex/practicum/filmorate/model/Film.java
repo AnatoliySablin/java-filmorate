@@ -27,14 +27,14 @@ public class Film {
 
     public Set<Long> getLikes() {
         if (likes == null) {
-            likes = new HashSet<Long>();
+            likes = new HashSet<>();
         }
         return likes;
     }
 
     public void addLike(Long id) {
         if (likes == null) {
-            likes = new HashSet<Long>();
+            likes = new HashSet<>();
             likes.add(id);
         } else {
             likes.add(id);

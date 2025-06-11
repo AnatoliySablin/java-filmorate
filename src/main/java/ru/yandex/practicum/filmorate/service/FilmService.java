@@ -29,9 +29,7 @@ public class FilmService {
     }
 
     public void deleteLikeFilm(Long id, Long userId) {
-        if (!userService.listUsers().contains(userId)) {
-            throw new NotFoundException("Пользователь с id: " + userId + " не найден");
-        }
+        userService.getUserById(userId);
         Film film =
                 filmStorage.getFilmById(id);
         film.getLikes().remove(userId);
@@ -42,7 +40,7 @@ public class FilmService {
         return filmStorage.listFilms()
                 .stream()
                 .sorted(Comparator.comparingLong(o -> o.getLikes().size()))
-                .limit(count != null ? count : Integer.MAX_VALUE)
+                .limit(count != null ? count : 10)
                 .collect(Collectors.toList());
     }
 
@@ -52,12 +50,13 @@ public class FilmService {
     }
 
     public Film addFilm(Film film) {
-        filmStorage.addFilm(film);
         return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        filmStorage.updateFilm(film);
+        if (!filmStorage.listFilms().contains(film)) {
+            throw new NotFoundException("Ошибка! Такой фильм не найден...");
+        }
         return filmStorage.updateFilm(film);
     }
 

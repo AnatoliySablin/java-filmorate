@@ -1,12 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -22,8 +17,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     private Long id = 0L;
 
-    @PostMapping
-    public User addUser(@Valid @RequestBody User user) {
+    public User addUser(User user) {
         log.info("Добавляем пользователя: {}", user);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -35,12 +29,8 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    @PutMapping
-    public User updateUser(@Valid @RequestBody User user) {
+    public User updateUser(User user) {
         log.info("Обновляем пользователя: {}", user);
-        if (!users.containsKey(user.getId())) {
-            throw new NotFoundException(user + " Такой пользователь не зарегистрирован");
-        }
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
@@ -50,7 +40,6 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    @GetMapping
     public List<User> listUsers() {
         log.info("Получаем список пользователей, его размер: {}", users.size());
         return new ArrayList<>(users.values());
