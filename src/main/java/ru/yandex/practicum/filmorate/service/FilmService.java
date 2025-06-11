@@ -56,8 +56,9 @@ public class FilmService {
     public Film updateFilm(Film film) {
         if (!filmStorage.listFilms().contains(film)) {
             throw new NotFoundException("Ошибка! Такой фильм не найден...");
+        } else {
+            return filmStorage.updateFilm(film);
         }
-        return filmStorage.updateFilm(film);
     }
 
     public List<Film> listFilms() {
