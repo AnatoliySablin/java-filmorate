@@ -30,25 +30,17 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public User updateUser(User user) {
-        try {
-            if (!users.containsKey(user.getId())) {
-                throw new NotFoundException("Пользователь не найден");
-            }
-            log.info("Обновляем пользователя: {}", user);
-            if (user.getName() == null || user.getName().isBlank()) {
-                user.setName(user.getLogin());
-                log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
-            }
-            users.put(user.getId(), user);
-            log.info("{} Пользователь успешно обновлен.", user);
-            return user;
-        } catch (Exception e) {
-            log.error("Ошибка при обновлении фильма", e);
-            throw e;
+        log.info("Обновляем пользователя: {}", user);
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+            log.info("Имя пользователя для отображения пустое — в таком случае будет используем логин.");
         }
+        users.put(user.getId(), user);
+        log.info("{} Пользователь успешно обновлен.", user);
+        return user;
     }
 
-    public List<User> listUsers() {
+    public List<User> getUsers() {
         log.info("Получаем список пользователей, его размер: {}", users.size());
         return new ArrayList<>(users.values());
     }

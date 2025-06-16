@@ -10,7 +10,7 @@ public interface FilmStorage {
 
     Film updateFilm(Film film);
 
-    List<Film> listFilms();
+    List<Film> getFilms();
 
     Film getFilmById(Long id);
 }

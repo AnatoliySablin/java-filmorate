@@ -67,14 +67,16 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        if (!userStorage.listUsers().contains(user)) {
-            throw new NotFoundException(user + " Такой пользователь не зарегистрирован");
+        try {
+            userStorage.getUserById(user.getId());
+        } catch (NotFoundException e) {
+            throw new NotFoundException("Пользователь с ID " + user.getId() + " не зарегистрирован");
         }
         userStorage.updateUser(user);
         return user;
     }
 
     public List<User> listUsers() {
-        return userStorage.listUsers();
+        return userStorage.getUsers();
     }
 }

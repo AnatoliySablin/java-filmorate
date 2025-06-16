@@ -37,10 +37,10 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilms(Integer count) {
-        return filmStorage.listFilms()
+        return filmStorage.getFilms()
                 .stream()
-                .sorted(Comparator.comparingLong(o -> o.getLikes().size()))
-                .limit(count != null ? count : 10)
+                .sorted(Comparator.comparingLong(film -> ((Film) film).getLikes().size()).reversed())
+                .limit(count)
                 .collect(Collectors.toList());
     }
 
@@ -54,7 +54,9 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
-        if (!filmStorage.listFilms().contains(film)) {
+        try {
+            filmStorage.getFilmById(film.getId());
+        } catch (NotFoundException e) {
             throw new NotFoundException("Ошибка! Такой фильм не найден...");
         }
         filmStorage.updateFilm(film);
@@ -62,6 +64,6 @@ public class FilmService {
     }
 
     public List<Film> listFilms() {
-        return filmStorage.listFilms();
+        return filmStorage.getFilms();
     }
 }
