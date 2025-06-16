@@ -25,10 +25,21 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     public Film updateFilm(Film film) {
-        log.info("Обновляем фильм {}", film);
-        films.put(film.getId(), film);
-        log.info("{} Фильм успешно обновлен", film);
-        return film;
+        try {
+            if (film == null) {
+                throw new IllegalArgumentException("Фильм не может быть пустым");
+            }
+            if (!films.containsKey(film.getId())) {
+                throw new NotFoundException("Фильм с ID " + film.getId() + " не найден");
+            }
+            log.info("Обновляем фильм {}", film);
+            films.put(film.getId(), film);
+            log.info("{} Фильм успешно обновлен", film);
+            return film;
+        } catch (Exception e) {
+            log.error("Ошибка при обновлении фильма", e);
+            throw e;
+        }
     }
 
     public List<Film> listFilms() {

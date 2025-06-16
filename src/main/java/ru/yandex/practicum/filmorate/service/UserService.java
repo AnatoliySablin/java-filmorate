@@ -69,9 +69,9 @@ public class UserService {
     public User updateUser(User user) {
         if (!userStorage.listUsers().contains(user)) {
             throw new NotFoundException(user + " Такой пользователь не зарегистрирован");
-        } else {
-            return userStorage.updateUser(user);
         }
+        userStorage.updateUser(user);
+        return user;
     }
 
     public List<User> listUsers() {
