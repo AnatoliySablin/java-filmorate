@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -67,11 +66,6 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        try {
-            userStorage.getUserById(user.getId());
-        } catch (NotFoundException e) {
-            throw new NotFoundException("Пользователь с ID " + user.getId() + " не зарегистрирован");
-        }
         userStorage.updateUser(user);
         return user;
     }
