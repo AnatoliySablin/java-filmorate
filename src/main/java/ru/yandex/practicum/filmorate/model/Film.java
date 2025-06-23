@@ -8,7 +8,9 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.validation.ValidReleaseDate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -24,6 +26,19 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private int duration;
+    private Mpa mpa;
+    private List<Genre> genres;
+
+    public List<Genre> getGenres() {
+        if (genres == null) {
+            genres = new ArrayList<>();
+        }
+        return genres;
+    }
+
+    public void setMpa(Mpa mpa) {
+        this.mpa = mpa;
+    }
 
     public Set<Long> getLikes() {
         if (likes == null) {

@@ -70,7 +70,8 @@ public class GenreDbStorage implements GenreDao {
             if (film.getGenres() == null) {
                 film.setGenres(new ArrayList<>());
             }
-            film.getGenres().add(new Genre((Integer) genre.get("FILM_GENRES_GENRES_ID"), (String) genre.get("GENRES_NAME")));
+            film.getGenres().add(new Genre((Integer) genre.get("FILM_GENRES_GENRES_ID"), (String) genre.get(
+                    "GENRES_NAME")));
         }
     }
 

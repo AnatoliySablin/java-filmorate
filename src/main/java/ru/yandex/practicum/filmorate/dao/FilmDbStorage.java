@@ -116,7 +116,8 @@ public class FilmDbStorage implements FilmDao {
             return ps;
         }, keyHolder);
         if (film.getGenres().size() > 0) {
-            final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_FILM_ID, FILM_GENRES_GENRES_ID) VALUES ( ?, ? );";
+            final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_FILM_ID, FILM_GENRES_GENRES_ID) VALUES ( ?, " +
+                    "? );";
             jdbcTemplate.batchUpdate(sqlQuery, new BatchPreparedStatementSetter() {
                 @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
