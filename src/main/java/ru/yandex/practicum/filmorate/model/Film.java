@@ -27,7 +27,6 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма должна быть положительной")
     private int duration;
-    @Pattern(regexp = "^[1-6]$", message = "id MPA должен быть от 1 до 6")
     private Mpa mpa;
     private List<Genre> genres;
 
