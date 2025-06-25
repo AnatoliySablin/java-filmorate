@@ -8,10 +8,7 @@ import lombok.Data;
 import ru.yandex.practicum.filmorate.validation.ValidReleaseDate;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @Builder
@@ -33,7 +30,7 @@ public class Film {
         if (genres == null) {
             genres = new ArrayList<>();
         }
-        return genres;
+        return new ArrayList<>(new LinkedHashSet<>(genres));
     }
 
     public void setMpa(Mpa mpa) {

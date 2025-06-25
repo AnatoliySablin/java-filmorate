@@ -3,11 +3,13 @@ package ru.yandex.practicum.filmorate.dao;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -79,6 +81,9 @@ public class UserDbStorage implements UserDao {
 
     @Override
     public List<User> getListFriends(Long id) {
+        if (!userExists(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден");
+        }
         List<User> listUser = new ArrayList<>();
         String sqlQueryFriends = "select FRIENDSHIP_FRIEND_ID from FRIENDSHIP where FRIENDSHIP_USER_ID = ?";
         List<Long> listIdFriends = jdbcTemplate.queryForList(sqlQueryFriends, new Long[]{id}, Long.class);
@@ -86,6 +91,11 @@ public class UserDbStorage implements UserDao {
             listUser.add(getUserById(listIdFriend));
         }
         return listUser;
+    }
+
+    private boolean userExists(Long id) {
+        String checkQuery = "SELECT COUNT(*) FROM USERS WHERE USER_ID = ?";
+        return jdbcTemplate.queryForObject(checkQuery, new Long[]{id}, Integer.class) > 0;
     }
 
     @Override
@@ -107,6 +117,9 @@ public class UserDbStorage implements UserDao {
 
     @Override
     public void removeFriendById(Long id, Long friendId) {
+        if (!userExists(id) || !userExists(friendId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден");
+        }
         final String sqlQuery = "delete from FRIENDSHIP" +
                 " where FRIENDSHIP_USER_ID = ? and FRIENDSHIP_FRIEND_ID = ?";
         jdbcTemplate.update(sqlQuery, id, friendId);

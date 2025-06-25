@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.dao;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -105,40 +106,48 @@ public class FilmDbStorage implements FilmDao {
 
     private Long writingToTableWithoutId(Film film, String query) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection
-                    .prepareStatement(query, RETURN_GENERATED_KEYS);
-            ps.setString(1, film.getName());
-            ps.setString(2, film.getDescription());
-            ps.setString(3, film.getReleaseDate().toString());
-            ps.setLong(4, film.getDuration());
-            ps.setLong(5, film.getMpa().getId());
-            return ps;
-        }, keyHolder);
+        try {
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection
+                        .prepareStatement(query, RETURN_GENERATED_KEYS);
+                ps.setString(1, film.getName());
+                ps.setString(2, film.getDescription());
+                ps.setString(3, film.getReleaseDate().toString());
+                ps.setLong(4, film.getDuration());
+                ps.setLong(5, film.getMpa().getId());
+                return ps;
+            }, keyHolder);
+        } catch (DataAccessException e) {
+            throw new NotFoundException(e.getMessage());
+        }
         if (film.getGenres().size() > 0) {
             final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_FILM_ID, FILM_GENRES_GENRES_ID) VALUES ( ?, " +
                     "? );";
-            jdbcTemplate.batchUpdate(sqlQuery, new BatchPreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    ps.setLong(1, Long.parseLong(keyHolder.getKey().toString()));
-                    ps.setLong(2, film.getGenres().get(i).getId());
-                }
+            try {
+                jdbcTemplate.batchUpdate(sqlQuery, new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setLong(1, Long.parseLong(Objects.requireNonNull(keyHolder.getKey()).toString()));
+                        ps.setLong(2, film.getGenres().get(i).getId());
+                    }
 
-                @Override
-                public int getBatchSize() {
-                    return film.getGenres().size();
-                }
-            });
+                    @Override
+                    public int getBatchSize() {
+                        return film.getGenres().size();
+                    }
+                });
+            } catch (DataAccessException e) {
+                throw new NotFoundException(e.getMessage());
+            }
         }
-        return Long.parseLong(keyHolder.getKey().toString());
+        return Long.parseLong(Objects.requireNonNull(keyHolder.getKey()).toString());
     }
 
     private Long writingToTableById(Film film, String query) {
         jdbcTemplate.update(query, film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
         film.setMpa(mpaDao.getMpaById(film.getMpa().getId()));
-        if (film.getGenres().size() > 0) {
+        if (!film.getGenres().isEmpty()) {
 
             final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
                     " where FILM_GENRES_FILM_ID = ?";
@@ -173,6 +182,7 @@ public class FilmDbStorage implements FilmDao {
         return Long.parseLong(film.getId().toString());
     }
 
+
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
         Film film = Film.builder()
                 .id(resultSet.getLong("FILM_ID"))
@@ -184,5 +194,6 @@ public class FilmDbStorage implements FilmDao {
                 .build();
         return film;
     }
+
 
 }
