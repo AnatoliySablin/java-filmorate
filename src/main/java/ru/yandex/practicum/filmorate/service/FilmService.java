@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +28,7 @@ public class FilmService {
         userDao.getUserById(userId);
         Film film = filmDao.getFilmById(id);
         filmDao.addLikeFilmToUser(id, userId);
-        film.getLikes().add(userId);
+        film.addLike(userId);
         log.info("Пользователь по id: " + userId + " поставил Like фильму " + film);
     }
 
@@ -41,17 +42,13 @@ public class FilmService {
 
 
     public List<Film> getPopularFilms(Integer count) {
-        List<Film> sortedByLikesFilms = filmDao.listFilms();
-        sortedByLikesFilms.sort(Comparator.comparingLong(o -> o.getLikes().size()));
-
-        if (count == null || count <= 0) {
-            count = 10; // значение по умолчанию
-        }
-
-
-        return sortedByLikesFilms.stream()
-                .limit(count)
-                .collect(Collectors.toList());
+        List<Film> films = filmDao.listFilms();
+        TreeSet<Film> sortedFilms = new TreeSet<>(Comparator.comparingInt(
+                        f -> ((Film) f).getLikes().size())
+                .thenComparing(f -> ((Film) f).getId())
+        );
+        sortedFilms.addAll(films);
+        return sortedFilms.descendingSet().stream().limit(count.describeConstable().orElse(10)).collect(Collectors.toList());
     }
 
     public Film getFilmById(Long id) {

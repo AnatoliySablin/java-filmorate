@@ -19,6 +19,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
@@ -57,17 +58,51 @@ public class FilmDbStorage implements FilmDao {
 
     @Override
     public List<Film> listFilms() {
-        final String sqlQuery = "SELECT FILM_ID, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE, FILM_DURATION, " +
-                "FILM_MPA, MPA_NAME FROM FILMS F JOIN MPA M on M.MPA_MPA_ID = F.FILM_MPA";
-        List<Film> filmList = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
-        Map<Long, Film> filmMap = new HashMap<>();
+        final String sqlQuery = "SELECT \n" +
+                "F.FILM_ID, \n" +
+                "F.FILM_NAME, \n" +
+                "F.FILM_DESCRIPTION, \n" +
+                "F.FILM_RELEASE_DATE, \n" +
+                "F.FILM_DURATION, \n" +
+                "F.FILM_MPA, \n" +
+                "M.MPA_NAME,\n" +
+                "(SELECT GROUP_CONCAT(L.FILM_LIKES_USER_ID_WHO_LIKE_FILM) \n" +
+                "FROM FILM_LIKES L \n" +
+                "WHERE L.FILMS_LIKES_ID = F.FILM_ID) AS LIKERS\n" +
+                "FROM FILMS F\n" +
+                "JOIN MPA M ON M.MPA_MPA_ID = F.FILM_MPA;\n";
 
+        List<Film> filmList = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+            Film film = Film.builder()
+                    .id(rs.getLong("FILM_ID"))
+                    .likes(new HashSet<>())
+                    .name(rs.getString("FILM_NAME"))
+                    .description(rs.getString("FILM_DESCRIPTION"))
+                    .releaseDate(rs.getDate("FILM_RELEASE_DATE").toLocalDate())
+                    .duration((int) rs.getLong("FILM_DURATION"))
+                    .mpa(new Mpa(rs.getInt("FILM_MPA"), rs.getString("MPA_NAME")))
+                    .build();
+
+            String likersString = rs.getString("LIKERS");
+            if (likersString != null && !likersString.isEmpty()) {
+                String[] likerIds = likersString.split(",");
+                Set<Long> likes = Arrays.stream(likerIds)
+                        .map(Long::parseLong)
+                        .collect(Collectors.toSet());
+                film.setLikes(likes);
+            }
+
+            return film;
+        });
+
+        Map<Long, Film> filmMap = new HashMap<>();
         for (Film film : filmList) {
             filmMap.put(film.getId(), film);
         }
         genreDao.setGenresForFilms(filmMap);
         return new ArrayList<>(filmMap.values());
     }
+
 
     @Override
     public Film getFilmById(Long id) {
