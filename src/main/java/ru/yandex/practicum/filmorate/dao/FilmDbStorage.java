@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 @Component
-@Repository
 @Slf4j
 @AllArgsConstructor
 public class FilmDbStorage implements FilmDao {

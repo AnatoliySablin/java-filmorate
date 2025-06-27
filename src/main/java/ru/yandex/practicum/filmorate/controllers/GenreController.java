@@ -15,15 +15,15 @@ import java.util.List;
 @RestController
 @RequestMapping({"/genres"})
 @Slf4j
-@Validated
 @RequiredArgsConstructor
 public class GenreController {
     private final GenreService genreService;
 
     @GetMapping()
     public List<Genre> listGenres() {
-        log.info("Получаем список жанров, их количество: " + genreService.listGenres().size());
-        return genreService.listGenres();
+        List<Genre> genreList = genreService.listGenres();
+        log.info("Получаем список жанров, их количество: " + genreList.size());
+        return genreList;
     }
 
     @GetMapping("/{id}")

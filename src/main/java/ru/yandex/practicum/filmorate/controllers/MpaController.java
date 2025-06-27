@@ -15,15 +15,15 @@ import java.util.List;
 @RestController
 @RequestMapping({"/mpa"})
 @Slf4j
-@Validated
 @RequiredArgsConstructor
 public class MpaController {
     private final MpaService mpaService;
 
     @GetMapping()
     public List<Mpa> listMpa() {
-        log.info("Получаем список рейтингов, их количество: " + mpaService.listMpa().size());
-        return mpaService.listMpa();
+        List<Mpa> mpaList = mpaService.listMpa();
+        log.info("Получаем список рейтингов, их количество: " + mpaList.size());
+        return mpaList;
     }
 
     @GetMapping("/{id}")
