@@ -35,8 +35,8 @@ public class FilmDbStorage implements FilmDao {
 
     @Override
     public Film addFilm(Film film) {
-        final String sqlQueryInsert = "insert into FILMS(FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE" +
-                ", FILM_DURATION, FILM_MPA)" +
+        final String sqlQueryInsert = "insert into FILMS(NAME, DESCRIPTION, RELEASE_DATE" +
+                ", DURATION, FILM_MPA)" +
                 " values (?, ?, ?, ?, ?)";
         Long id = writingToTable(film, sqlQueryInsert);
         Film film1 = getFilmById(id);
@@ -47,8 +47,8 @@ public class FilmDbStorage implements FilmDao {
     @Override
     public Film updateFilm(Film film) {
         getFilmById(film.getId());
-        final String sqlQuery = "update FILMS set FILM_NAME = ?, FILM_DESCRIPTION = ?, FILM_RELEASE_DATE = ?," +
-                " FILM_DURATION = ?, FILM_MPA = ? where FILM_ID = ?";
+        final String sqlQuery = "update FILMS set NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?," +
+                " DURATION = ?, FILM_MPA = ? where ID = ?";
         Long id = writingToTable(film, sqlQuery);
         film = getFilmById(id);
         log.info(film + " Фильм успешно обновлен");
@@ -63,20 +63,20 @@ public class FilmDbStorage implements FilmDao {
                 "f.*, " +
                 "m.MPA_NAME, " +    // Добавляем выборку имени MPA
                 "(SELECT COUNT(*) FROM FILM_LIKES fl " +
-                "WHERE fl.FILMS_LIKES_ID = f.FILM_ID) as LIKE_COUNT " +
+                "WHERE fl.FILMS_LIKES_ID = f.ID) as LIKE_COUNT " +
                 "FROM FILMS f " +
                 "INNER JOIN MPA m ON f.FILM_MPA = m.MPA_ID " +  // Добавляем JOIN
-                "ORDER BY LIKE_COUNT DESC, f.FILM_ID " +
+                "ORDER BY LIKE_COUNT DESC, f.ID " +
                 "LIMIT ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Film film = Film.builder()
-                    .id(rs.getLong("FILM_ID"))
+                    .id(rs.getLong("ID"))
                     .likes(new HashSet<>())
-                    .name(rs.getString("FILM_NAME"))
-                    .description(rs.getString("FILM_DESCRIPTION"))
-                    .releaseDate(rs.getDate("FILM_RELEASE_DATE").toLocalDate())
-                    .duration((int) rs.getLong("FILM_DURATION"))
+                    .name(rs.getString("NAME"))
+                    .description(rs.getString("DESCRIPTION"))
+                    .releaseDate(rs.getDate("RELEASE_DATE").toLocalDate())
+                    .duration((int) rs.getLong("DURATION"))
                     .mpa(new Mpa(
                             rs.getInt("FILM_MPA"),
                             rs.getString("MPA_NAME")))  // Теперь получаем MPA_NAME из JOIN
@@ -87,33 +87,30 @@ public class FilmDbStorage implements FilmDao {
     }
 
 
-
-
-
     @Override
     public List<Film> listFilms() {
         final String sqlQuery = "SELECT \n" +
-                "F.FILM_ID, \n" +
-                "F.FILM_NAME, \n" +
-                "F.FILM_DESCRIPTION, \n" +
-                "F.FILM_RELEASE_DATE, \n" +
-                "F.FILM_DURATION, \n" +
+                "F.ID, \n" +
+                "F.NAME, \n" +
+                "F.DESCRIPTION, \n" +
+                "F.RELEASE_DATE, \n" +
+                "F.DURATION, \n" +
                 "F.FILM_MPA, \n" +
                 "M.MPA_NAME,\n" +
                 "(SELECT GROUP_CONCAT(L.FILM_LIKES_USER_ID_WHO_LIKE_FILM) \n" +
                 "FROM FILM_LIKES L \n" +
-                "WHERE L.FILMS_LIKES_ID = F.FILM_ID) AS LIKERS\n" +
+                "WHERE L.FILMS_LIKES_ID = F.ID) AS LIKERS\n" +
                 "FROM FILMS F\n" +
                 "JOIN MPA M ON M.MPA_ID = F.FILM_MPA;\n";
 
         List<Film> filmList = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
             Film film = Film.builder()
-                    .id(rs.getLong("FILM_ID"))
+                    .id(rs.getLong("ID"))
                     .likes(new HashSet<>())
-                    .name(rs.getString("FILM_NAME"))
-                    .description(rs.getString("FILM_DESCRIPTION"))
-                    .releaseDate(rs.getDate("FILM_RELEASE_DATE").toLocalDate())
-                    .duration((int) rs.getLong("FILM_DURATION"))
+                    .name(rs.getString("NAME"))
+                    .description(rs.getString("DESCRIPTION"))
+                    .releaseDate(rs.getDate("RELEASE_DATE").toLocalDate())
+                    .duration((int) rs.getLong("DURATION"))
                     .mpa(new Mpa(rs.getInt("FILM_MPA"), rs.getString("MPA_NAME")))
                     .build();
 
@@ -141,8 +138,8 @@ public class FilmDbStorage implements FilmDao {
     @Override
     public Film getFilmById(Long id) {
         try {
-            final String sqlQuery = "SELECT FILM_ID, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE, FILM_DURATION, " +
-                    "FILM_MPA, MPA_NAME FROM FILMS INNER JOIN MPA ON FILMS.FILM_MPA = MPA.MPA_ID WHERE FILM_ID=?";
+            final String sqlQuery = "SELECT ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, " +
+                    "FILM_MPA, MPA_NAME FROM FILMS INNER JOIN MPA ON FILMS.FILM_MPA = MPA.MPA_ID WHERE ID=?";
             Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
             film.setGenres(genreDao.getListGenresByMovieId(id));
             return film;
@@ -190,7 +187,7 @@ public class FilmDbStorage implements FilmDao {
             throw new NotFoundException(e.getMessage());
         }
         if (film.getGenres().size() > 0) {
-            final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_FILM_ID, FILM_GENRES_GENRES_ID) VALUES ( ?, " +
+            final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_GENRES_ID) VALUES ( ?, " +
                     "? );";
             try {
                 jdbcTemplate.batchUpdate(sqlQuery, new BatchPreparedStatementSetter() {
@@ -218,11 +215,11 @@ public class FilmDbStorage implements FilmDao {
         film.setMpa(mpaDao.getMpaById(film.getMpa().getId()));
 
         final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
-                " where FILM_GENRES_FILM_ID = ?";
+                " where FILM_GENRES_ID = ?";
         List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
                 new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
 
-        final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_FILM_ID = ?" +
+        final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_ID = ?" +
                 " and FILM_GENRES_GENRES_ID = ?";
 
         for (Long idGenre : listIdGenres) {
@@ -234,7 +231,7 @@ public class FilmDbStorage implements FilmDao {
             for (Genre genreId : film.getGenres()) {
                 myList.add((long) genreId.getId());
             }
-            final String sqlQueryFilmGenres = "insert into FILM_GENRES(FILM_GENRES_FILM_ID, FILM_GENRES_GENRES_ID)" +
+            final String sqlQueryFilmGenres = "insert into FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_GENRES_ID)" +
                     " values (?, ?)";
             for (Long aLong : myList) {
                 jdbcTemplate.update(sqlQueryFilmGenres, film.getId(), aLong);
@@ -245,14 +242,13 @@ public class FilmDbStorage implements FilmDao {
     }
 
 
-
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
         return Film.builder()
-                .id(resultSet.getLong("FILM_ID"))
-                .name(resultSet.getString("FILM_NAME"))
-                .description(resultSet.getString("FILM_DESCRIPTION"))
-                .releaseDate(resultSet.getDate("FILM_RELEASE_DATE").toLocalDate())
-                .duration(resultSet.getInt("FILM_DURATION"))
+                .id(resultSet.getLong("ID"))
+                .name(resultSet.getString("NAME"))
+                .description(resultSet.getString("DESCRIPTION"))
+                .releaseDate(resultSet.getDate("RELEASE_DATE").toLocalDate())
+                .duration(resultSet.getInt("DURATION"))
                 .mpa(new Mpa(resultSet.getInt("FILM_MPA"), resultSet.getString("MPA_NAME")))
                 .build();
     }

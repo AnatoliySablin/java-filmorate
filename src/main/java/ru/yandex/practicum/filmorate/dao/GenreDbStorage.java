@@ -47,7 +47,7 @@ public class GenreDbStorage implements GenreDao {
     public List<Genre> getListGenresByMovieId(Long id) {
         final String sqlQuery = "SELECT G.* FROM FILM_GENRES FG " +
                 "INNER JOIN GENRES G ON FG.FILM_GENRES_GENRES_ID = G.GENRES_GENRES_ID " +
-                "WHERE FG.FILM_GENRES_FILM_ID=? " +
+                "WHERE FG.FILM_GENRES_ID=? " +
                 "GROUP BY G.GENRES_GENRES_ID";
 
         List<Genre> ls = jdbcTemplate.query(sqlQuery, this::mapRowToGenres, id);
@@ -66,10 +66,10 @@ public class GenreDbStorage implements GenreDao {
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
         parameterSource.addValue("ids", filmMap.keySet());
         final String sqlQuery = "SELECT * FROM GENRES G join FILM_GENRES FG" +
-                " on G.GENRES_GENRES_ID = FG.FILM_GENRES_GENRES_ID WHERE FG.FILM_GENRES_FILM_ID IN (:ids)";
+                " on G.GENRES_GENRES_ID = FG.FILM_GENRES_GENRES_ID WHERE FG.FILM_GENRES_ID IN (:ids)";
         List<Map<String, Object>> maps = namedParameterJdbcTemplate.queryForList(sqlQuery, parameterSource);
         for (Map<String, Object> genre : maps) {
-            Film film = filmMap.get(new Long(genre.get("FILM_GENRES_FILM_ID").toString()));
+            Film film = filmMap.get(new Long(genre.get("FILM_GENRES_ID").toString()));
             if (film.getGenres() == null) {
                 film.setGenres(new ArrayList<>());
             }
