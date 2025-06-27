@@ -41,13 +41,7 @@ public class FilmService {
 
 
     public List<Film> getPopularFilms(Integer count) {
-        List<Film> films = filmDao.listFilms();
-        TreeSet<Film> sortedFilms = new TreeSet<>(Comparator.comparingInt(
-                        f -> ((Film) f).getLikes().size())
-                .thenComparing(f -> ((Film) f).getId())
-        );
-        sortedFilms.addAll(films);
-        return sortedFilms.descendingSet().stream().limit(count.describeConstable().orElse(10)).collect(Collectors.toList());
+        return filmDao.getPopularFilms(count);
     }
 
     public Film getFilmById(Long id) {

@@ -9,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -55,6 +54,41 @@ public class FilmDbStorage implements FilmDao {
         log.info(film + " Фильм успешно обновлен");
         return film;
     }
+
+    @Override
+    public List<Film> getPopularFilms(Integer count) {
+        int limit = (count != null) ? count : 10;
+
+        String sql = "SELECT " +
+                "f.*, " +
+                "m.MPA_NAME, " +    // Добавляем выборку имени MPA
+                "(SELECT COUNT(*) FROM FILM_LIKES fl " +
+                "WHERE fl.FILMS_LIKES_ID = f.FILM_ID) as LIKE_COUNT " +
+                "FROM FILMS f " +
+                "INNER JOIN MPA m ON f.FILM_MPA = m.MPA_MPA_ID " +  // Добавляем JOIN
+                "ORDER BY LIKE_COUNT DESC, f.FILM_ID " +
+                "LIMIT ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Film film = Film.builder()
+                    .id(rs.getLong("FILM_ID"))
+                    .likes(new HashSet<>())
+                    .name(rs.getString("FILM_NAME"))
+                    .description(rs.getString("FILM_DESCRIPTION"))
+                    .releaseDate(rs.getDate("FILM_RELEASE_DATE").toLocalDate())
+                    .duration((int) rs.getLong("FILM_DURATION"))
+                    .mpa(new Mpa(
+                            rs.getInt("FILM_MPA"),
+                            rs.getString("MPA_NAME")))  // Теперь получаем MPA_NAME из JOIN
+                    .build();
+
+            return film;
+        }, limit);
+    }
+
+
+
+
 
     @Override
     public List<Film> listFilms() {
