@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,7 +42,7 @@ class GenreDbStorageTest {
     @Test
     void checkReportExitsGenresTest() throws ValidationException, NotFoundException {
         Genre genre = genreDbStorage.getGenreById(2);
-        assertEquals(2L, genre.getId());
+        assertEquals(Optional.of(2L), genre.getId());
         assertEquals("Драма", genre.getName());
     }
 
