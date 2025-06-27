@@ -30,7 +30,7 @@ public class Film {
         if (genres == null) {
             genres = new ArrayList<>();
         }
-        return new ArrayList<>(new LinkedHashSet<>(genres));
+        return genres;
     }
 
     public void setMpa(Mpa mpa) {

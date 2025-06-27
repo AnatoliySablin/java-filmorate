@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Validated
 public class FilmService {
     private final FilmDao filmDao;
     private final UserDao userDao;

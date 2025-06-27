@@ -40,8 +40,9 @@ public class FilmDbStorage implements FilmDao {
                 ", FILM_DURATION, FILM_MPA)" +
                 " values (?, ?, ?, ?, ?)";
         Long id = writingToTable(film, sqlQueryInsert);
-        log.info(getFilmById(id) + " Фильм успешно добавлен!");
-        return getFilmById(id);
+        Film film1 = getFilmById(id);
+        log.info(film1 + " Фильм успешно добавлен!");
+        return film1;
     }
 
     @Override
@@ -181,18 +182,20 @@ public class FilmDbStorage implements FilmDao {
         jdbcTemplate.update(query, film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
         film.setMpa(mpaDao.getMpaById(film.getMpa().getId()));
+
+        final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
+                " where FILM_GENRES_FILM_ID = ?";
+        List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
+                new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
+
+        final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_FILM_ID = ?" +
+                " and FILM_GENRES_GENRES_ID = ?";
+
+        for (Long idGenre : listIdGenres) {
+            jdbcTemplate.update(sqlQueryGenreDeleteById, Long.parseLong(film.getId().toString()), idGenre);
+        }
+
         if (!film.getGenres().isEmpty()) {
-
-            final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
-                    " where FILM_GENRES_FILM_ID = ?";
-            List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
-                    new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
-            for (Long idGenre : listIdGenres) {
-                final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_FILM_ID = ?" +
-                        " and FILM_GENRES_GENRES_ID = ?";
-                jdbcTemplate.update(sqlQueryGenreDeleteById, Long.parseLong(film.getId().toString()), idGenre);
-            }
-
             Set<Long> myList = new HashSet<Long>();
             for (Genre genreId : film.getGenres()) {
                 myList.add((long) genreId.getId());
@@ -202,23 +205,15 @@ public class FilmDbStorage implements FilmDao {
             for (Long aLong : myList) {
                 jdbcTemplate.update(sqlQueryFilmGenres, film.getId(), aLong);
             }
-        } else {
-            final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
-                    " where FILM_GENRES_FILM_ID = ?";
-            List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
-                    new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
-            for (Long idGenre : listIdGenres) {
-                final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_FILM_ID = ?" +
-                        " and FILM_GENRES_GENRES_ID = ?";
-                jdbcTemplate.update(sqlQueryGenreDeleteById, Long.parseLong(film.getId().toString()), idGenre);
-            }
         }
+
         return Long.parseLong(film.getId().toString());
     }
 
 
+
     private Film mapRowToFilm(ResultSet resultSet, int rowNum) throws SQLException {
-        Film film = Film.builder()
+        return Film.builder()
                 .id(resultSet.getLong("FILM_ID"))
                 .name(resultSet.getString("FILM_NAME"))
                 .description(resultSet.getString("FILM_DESCRIPTION"))
@@ -226,7 +221,6 @@ public class FilmDbStorage implements FilmDao {
                 .duration(resultSet.getInt("FILM_DURATION"))
                 .mpa(new Mpa(resultSet.getInt("FILM_MPA"), resultSet.getString("MPA_NAME")))
                 .build();
-        return film;
     }
 
 

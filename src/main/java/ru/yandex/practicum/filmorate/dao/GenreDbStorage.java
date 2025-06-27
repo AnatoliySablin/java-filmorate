@@ -45,8 +45,11 @@ public class GenreDbStorage implements GenreDao {
 
     @Override
     public List<Genre> getListGenresByMovieId(Long id) {
-        final String sqlQuery = "SELECT * FROM FILM_GENRES FG INNER JOIN GENRES G " +
-                "on FG.FILM_GENRES_GENRES_ID = G.GENRES_GENRES_ID WHERE FG.FILM_GENRES_FILM_ID=?";
+        final String sqlQuery = "SELECT G.* FROM FILM_GENRES FG " +
+                "INNER JOIN GENRES G ON FG.FILM_GENRES_GENRES_ID = G.GENRES_GENRES_ID " +
+                "WHERE FG.FILM_GENRES_FILM_ID=? " +
+                "GROUP BY G.GENRES_GENRES_ID";
+
         List<Genre> ls = jdbcTemplate.query(sqlQuery, this::mapRowToGenres, id);
         return jdbcTemplate.query(sqlQuery, this::mapRowToGenres, id);
     }
