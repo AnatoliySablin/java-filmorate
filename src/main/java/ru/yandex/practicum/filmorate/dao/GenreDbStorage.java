@@ -56,7 +56,7 @@ public class GenreDbStorage implements GenreDao {
 
     private Genre mapRowToGenres(ResultSet resultSet, int rowNum) throws SQLException {
         return Genre.builder()
-                .id(resultSet.getInt("GENRES_GENRES_ID"))
+                .id((int) resultSet.getInt("GENRES_GENRES_ID"))
                 .name(resultSet.getString("GENRES_NAME"))
                 .build();
     }

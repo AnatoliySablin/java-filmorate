@@ -84,14 +84,23 @@ public class UserDbStorage implements UserDao {
         if (!userExists(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден");
         }
-        List<User> listUser = new ArrayList<>();
-        String sqlQueryFriends = "select FRIENDSHIP_FRIEND_ID from FRIENDSHIP where FRIENDSHIP_USER_ID = ?";
-        List<Long> listIdFriends = jdbcTemplate.queryForList(sqlQueryFriends, new Long[]{id}, Long.class);
-        for (Long listIdFriend : listIdFriends) {
-            listUser.add(getUserById(listIdFriend));
-        }
-        return listUser;
+
+        String sqlQuery = "SELECT u.* " +
+                "FROM USERS u " +
+                "JOIN FRIENDSHIP f ON u.USER_ID = f.FRIENDSHIP_FRIEND_ID " +
+                "WHERE f.FRIENDSHIP_USER_ID = ?";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+            return User.builder()
+                    .id(rs.getLong("USER_ID"))
+                    .name(rs.getString("USER_NAME"))
+                    .login(rs.getString("USER_LOGIN"))
+                    .email(rs.getString("USER_EMAIL"))
+                    .birthday(rs.getDate("USER_BIRTHDAY").toLocalDate())
+                    .build();
+        }, id);
     }
+
 
     private boolean userExists(Long id) {
         String checkQuery = "SELECT COUNT(*) FROM USERS WHERE USER_ID = ?";
@@ -100,20 +109,24 @@ public class UserDbStorage implements UserDao {
 
     @Override
     public List<User> getCommonFriends(Long id, Long otherId) {
-        List<User> listUser = new ArrayList<>();
-        String sqlQueryFriendsUser1 = "select FRIENDSHIP_FRIEND_ID from FRIENDSHIP where FRIENDSHIP_USER_ID = ?";
-        String sqlQueryFriendsUser2 = "select FRIENDSHIP_FRIEND_ID from FRIENDSHIP where FRIENDSHIP_USER_ID = ?";
-        List<Long> listIdFriendsUser1 = jdbcTemplate.queryForList(sqlQueryFriendsUser1, new Long[]{id}, Long.class);
-        List<Long> listIdFriendsUser2 = jdbcTemplate.queryForList(sqlQueryFriendsUser2, new Long[]{otherId},
-                Long.class);
-        List<Long> intersectList = listIdFriendsUser1.stream()
-                .filter(listIdFriendsUser2::contains)
-                .collect(Collectors.toList());
-        for (Long idUser : intersectList) {
-            listUser.add(getUserById(idUser));
-        }
-        return listUser;
+        String sqlQuery = "SELECT DISTINCT u.* " +
+                "FROM USERS u " +
+                "JOIN FRIENDSHIP f ON u.USER_ID = f.FRIENDSHIP_FRIEND_ID " +
+                "JOIN FRIENDSHIP o ON u.USER_ID = o.FRIENDSHIP_FRIEND_ID " +
+                "WHERE f.FRIENDSHIP_USER_ID = ? " +
+                "AND o.FRIENDSHIP_USER_ID = ?";
+
+        return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+            return User.builder()
+                    .id(rs.getLong("USER_ID"))
+                    .name(rs.getString("USER_NAME"))
+                    .login(rs.getString("USER_LOGIN"))
+                    .email(rs.getString("USER_EMAIL"))
+                    .birthday(rs.getDate("USER_BIRTHDAY").toLocalDate())
+                    .build();
+        }, id, otherId);
     }
+
 
     @Override
     public void removeFriendById(Long id, Long friendId) {

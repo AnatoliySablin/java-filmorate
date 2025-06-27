@@ -65,7 +65,7 @@ public class FilmDbStorage implements FilmDao {
                 "(SELECT COUNT(*) FROM FILM_LIKES fl " +
                 "WHERE fl.FILMS_LIKES_ID = f.FILM_ID) as LIKE_COUNT " +
                 "FROM FILMS f " +
-                "INNER JOIN MPA m ON f.FILM_MPA = m.MPA_MPA_ID " +  // Добавляем JOIN
+                "INNER JOIN MPA m ON f.FILM_MPA = m.MPA_ID " +  // Добавляем JOIN
                 "ORDER BY LIKE_COUNT DESC, f.FILM_ID " +
                 "LIMIT ?";
 
@@ -104,7 +104,7 @@ public class FilmDbStorage implements FilmDao {
                 "FROM FILM_LIKES L \n" +
                 "WHERE L.FILMS_LIKES_ID = F.FILM_ID) AS LIKERS\n" +
                 "FROM FILMS F\n" +
-                "JOIN MPA M ON M.MPA_MPA_ID = F.FILM_MPA;\n";
+                "JOIN MPA M ON M.MPA_ID = F.FILM_MPA;\n";
 
         List<Film> filmList = jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
             Film film = Film.builder()
@@ -142,7 +142,7 @@ public class FilmDbStorage implements FilmDao {
     public Film getFilmById(Long id) {
         try {
             final String sqlQuery = "SELECT FILM_ID, FILM_NAME, FILM_DESCRIPTION, FILM_RELEASE_DATE, FILM_DURATION, " +
-                    "FILM_MPA, MPA_NAME FROM FILMS INNER JOIN MPA ON FILMS.FILM_MPA = MPA.MPA_MPA_ID WHERE FILM_ID=?";
+                    "FILM_MPA, MPA_NAME FROM FILMS INNER JOIN MPA ON FILMS.FILM_MPA = MPA.MPA_ID WHERE FILM_ID=?";
             Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
             film.setGenres(genreDao.getListGenresByMovieId(id));
             return film;

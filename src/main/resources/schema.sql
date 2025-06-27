@@ -2,10 +2,10 @@ drop table IF EXISTS MPA CASCADE;
 
 create table IF NOT EXISTS MPA
 (
-    MPA_MPA_ID INTEGER auto_increment,
+    MPA_ID INTEGER auto_increment,
     MPA_NAME   CHARACTER VARYING(10),
     constraint MPA_PK
-        primary key (MPA_MPA_ID)
+        primary key (MPA_ID)
 );
 
 drop table IF EXISTS FILMS CASCADE;
@@ -20,7 +20,7 @@ create table FILMS
     FILM_MPA          INTEGER                not null,
     constraint FILMS_PK
         primary key (FILM_ID),
-    constraint FILMS_MPA_MPA_MPA_ID_FK
+    constraint FILMS_MPA_MPA_ID_FK
         foreign key (FILM_MPA) references MPA
 );
 

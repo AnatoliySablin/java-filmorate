@@ -11,7 +11,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class Genre {
 
-    private int id;
+    private Integer id;
     @NotNull
     @Size(min = 1, max = 15)
     private String name;

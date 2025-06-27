@@ -29,7 +29,7 @@ public class MpaDbStorage implements MpaDao {
 
     @Override
     public Mpa getMpaById(int id) {
-        String sqlQuery = "select * from MPA where MPA_MPA_ID =?";
+        String sqlQuery = "select * from MPA where MPA_ID =?";
         try {
             Mpa mpa = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToMPA, id);
             return mpa;
@@ -40,7 +40,7 @@ public class MpaDbStorage implements MpaDao {
 
     private Mpa mapRowToMPA(ResultSet resultSet, int rowNum) throws SQLException {
         return Mpa.builder()
-                .id(resultSet.getInt("MPA_MPA_ID"))
+                .id(resultSet.getInt("MPA_ID"))
                 .name(resultSet.getString("MPA_NAME"))
                 .build();
     }
