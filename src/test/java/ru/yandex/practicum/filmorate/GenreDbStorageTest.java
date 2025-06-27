@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -42,8 +43,11 @@ class GenreDbStorageTest {
     @Test
     void checkReportExitsGenresTest() throws ValidationException, NotFoundException {
         Genre genre = genreDbStorage.getGenreById(2);
-        assertEquals(Optional.of(2L), genre.getId());
+        assertEquals((long) 2L, Optional.ofNullable(genre.getId())); // Явное приведение Long к long
         assertEquals("Драма", genre.getName());
     }
+
+
+
 
 }
