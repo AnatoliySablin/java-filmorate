@@ -34,7 +34,7 @@ public class GenreDbStorage implements GenreDao {
 
     @Override
     public Genre getGenreById(int id) {
-        String sqlQuery = "select * from GENRES where GENRES_GENRES_ID =?";
+        String sqlQuery = "select * from GENRES where GENRES_G_ID =?";
         try {
             Genre genre = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToGenres, id);
             return genre;
@@ -46,9 +46,9 @@ public class GenreDbStorage implements GenreDao {
     @Override
     public List<Genre> getListGenresByMovieId(Long id) {
         final String sqlQuery = "SELECT G.* FROM FILM_GENRES FG " +
-                "INNER JOIN GENRES G ON FG.FILM_GENRES_GENRES_ID = G.GENRES_GENRES_ID " +
+                "INNER JOIN GENRES G ON FG.FILM_GENRES_G_ID = G.GENRES_G_ID " +
                 "WHERE FG.FILM_GENRES_ID=? " +
-                "GROUP BY G.GENRES_GENRES_ID";
+                "GROUP BY G.GENRES_G_ID";
 
         List<Genre> ls = jdbcTemplate.query(sqlQuery, this::mapRowToGenres, id);
         return jdbcTemplate.query(sqlQuery, this::mapRowToGenres, id);
@@ -56,7 +56,7 @@ public class GenreDbStorage implements GenreDao {
 
     private Genre mapRowToGenres(ResultSet resultSet, int rowNum) throws SQLException {
         return Genre.builder()
-                .id((int) resultSet.getInt("GENRES_GENRES_ID"))
+                .id((int) resultSet.getInt("GENRES_G_ID"))
                 .name(resultSet.getString("GENRES_NAME"))
                 .build();
     }
@@ -66,14 +66,14 @@ public class GenreDbStorage implements GenreDao {
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
         parameterSource.addValue("ids", filmMap.keySet());
         final String sqlQuery = "SELECT * FROM GENRES G join FILM_GENRES FG" +
-                " on G.GENRES_GENRES_ID = FG.FILM_GENRES_GENRES_ID WHERE FG.FILM_GENRES_ID IN (:ids)";
+                " on G.GENRES_G_ID = FG.FILM_GENRES_G_ID WHERE FG.FILM_GENRES_ID IN (:ids)";
         List<Map<String, Object>> maps = namedParameterJdbcTemplate.queryForList(sqlQuery, parameterSource);
         for (Map<String, Object> genre : maps) {
             Film film = filmMap.get(new Long(genre.get("FILM_GENRES_ID").toString()));
             if (film.getGenres() == null) {
                 film.setGenres(new ArrayList<>());
             }
-            film.getGenres().add(new Genre((Integer) genre.get("FILM_GENRES_GENRES_ID"), (String) genre.get(
+            film.getGenres().add(new Genre((Integer) genre.get("FILM_GENRES_G_ID"), (String) genre.get(
                     "GENRES_NAME")));
         }
     }

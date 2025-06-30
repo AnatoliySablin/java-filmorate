@@ -12,9 +12,9 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -38,11 +38,13 @@ class GenreDbStorageTest {
         assertEquals("Комедия", genre.getName());
     }
 
-    @DirtiesContext
     @Test
     void checkReportExitsGenresTest() throws ValidationException, NotFoundException {
         Genre genre = genreDbStorage.getGenreById(2);
-        assertEquals((long) 2L, Optional.ofNullable(genre.getId())); // Явное приведение Long к long
+        assertNotNull(genre);
+        Long genreId = Long.valueOf(genre.getId());
+        assertNotNull(genreId);
+        assertEquals(2L, genreId);
         assertEquals("Драма", genre.getName());
     }
 

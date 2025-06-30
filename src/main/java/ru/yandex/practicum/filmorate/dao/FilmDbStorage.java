@@ -97,7 +97,7 @@ public class FilmDbStorage implements FilmDao {
                 "F.DURATION, \n" +
                 "F.FILM_MPA, \n" +
                 "M.MPA_NAME,\n" +
-                "(SELECT GROUP_CONCAT(L.FILM_LIKES_USER_ID_WHO_LIKE_FILM) \n" +
+                "(SELECT GROUP_CONCAT(L.U_ID) \n" +
                 "FROM FILM_LIKES L \n" +
                 "WHERE L.FILMS_LIKES_ID = F.ID) AS LIKERS\n" +
                 "FROM FILMS F\n" +
@@ -150,7 +150,7 @@ public class FilmDbStorage implements FilmDao {
 
     @Override
     public void addLikeFilmToUser(Long id, Long userId) {
-        final String sqlQueryInsertLike = "insert into FILM_LIKES(FILMS_LIKES_ID, FILM_LIKES_USER_ID_WHO_LIKE_FILM)" +
+        final String sqlQueryInsertLike = "insert into FILM_LIKES(FILMS_LIKES_ID, U_ID)" +
                 " values (?, ?)";
         jdbcTemplate.update(sqlQueryInsertLike, id, userId);
     }
@@ -158,7 +158,7 @@ public class FilmDbStorage implements FilmDao {
     @Override
     public void deleteLikeFilmToUser(Long id, Long userId) {
         final String sqlQuery = "delete from FILM_LIKES" +
-                " where FILMS_LIKES_ID = ? and FILM_LIKES_USER_ID_WHO_LIKE_FILM = ?";
+                " where FILMS_LIKES_ID = ? and U_ID = ?";
         jdbcTemplate.update(sqlQuery, id, userId);
     }
 
@@ -187,7 +187,7 @@ public class FilmDbStorage implements FilmDao {
             throw new NotFoundException(e.getMessage());
         }
         if (film.getGenres().size() > 0) {
-            final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_GENRES_ID) VALUES ( ?, " +
+            final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_G_ID) VALUES ( ?, " +
                     "? );";
             try {
                 jdbcTemplate.batchUpdate(sqlQuery, new BatchPreparedStatementSetter() {
@@ -214,13 +214,13 @@ public class FilmDbStorage implements FilmDao {
                 film.getDuration(), film.getMpa().getId(), film.getId());
         film.setMpa(mpaDao.getMpaById(film.getMpa().getId()));
 
-        final String sqlQueryListGenges = "select FILM_GENRES_GENRES_ID from FILM_GENRES" +
+        final String sqlQueryListGenges = "select FILM_GENRES_G_ID from FILM_GENRES" +
                 " where FILM_GENRES_ID = ?";
         List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
                 new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
 
         final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_ID = ?" +
-                " and FILM_GENRES_GENRES_ID = ?";
+                " and FILM_GENRES_G_ID = ?";
 
         for (Long idGenre : listIdGenres) {
             jdbcTemplate.update(sqlQueryGenreDeleteById, Long.parseLong(film.getId().toString()), idGenre);
@@ -231,7 +231,7 @@ public class FilmDbStorage implements FilmDao {
             for (Genre genreId : film.getGenres()) {
                 myList.add((long) genreId.getId());
             }
-            final String sqlQueryFilmGenres = "insert into FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_GENRES_ID)" +
+            final String sqlQueryFilmGenres = "insert into FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_G_ID)" +
                     " values (?, ?)";
             for (Long aLong : myList) {
                 jdbcTemplate.update(sqlQueryFilmGenres, film.getId(), aLong);
