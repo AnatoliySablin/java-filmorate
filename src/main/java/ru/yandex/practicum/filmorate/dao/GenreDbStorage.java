@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,12 +44,11 @@ public class GenreDbStorage implements GenreDao {
 
     @Override
     public List<Genre> getListGenresByMovieId(Long id) {
-        final String sqlQuery = "SELECT G.* FROM FILM_GENRES FG " +
-                "INNER JOIN GENRES G ON FG.FILM_GENRES_G_ID = G.GENRES_G_ID " +
-                "WHERE FG.FILM_GENRES_ID=? " +
-                "GROUP BY G.GENRES_G_ID";
+        final String sqlQuery = "SELECT DISTINCT G.* \n" +
+                "FROM FILM_GENRES FG \n" +
+                "INNER JOIN GENRES G ON FG.FILM_GENRES_G_ID = G.GENRES_G_ID \n" +
+                "WHERE FG.FILM_GENRES_ID = ?\n";
 
-        List<Genre> ls = jdbcTemplate.query(sqlQuery, this::mapRowToGenres, id);
         return jdbcTemplate.query(sqlQuery, this::mapRowToGenres, id);
     }
 
@@ -65,17 +63,29 @@ public class GenreDbStorage implements GenreDao {
     public void setGenresForFilms(Map<Long, Film> filmMap) {
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
         parameterSource.addValue("ids", filmMap.keySet());
-        final String sqlQuery = "SELECT * FROM GENRES G join FILM_GENRES FG" +
-                " on G.GENRES_G_ID = FG.FILM_GENRES_G_ID WHERE FG.FILM_GENRES_ID IN (:ids)";
+
+        final String sqlQuery = "SELECT DISTINCT G.* FROM GENRES G " +
+                "JOIN FILM_GENRES FG ON G.GENRES_G_ID = FG.FILM_GENRES_G_ID " +
+                "WHERE FG.FILM_GENRES_ID IN (:ids)";
+
         List<Map<String, Object>> maps = namedParameterJdbcTemplate.queryForList(sqlQuery, parameterSource);
-        for (Map<String, Object> genre : maps) {
-            Film film = filmMap.get(new Long(genre.get("FILM_GENRES_ID").toString()));
-            if (film.getGenres() == null) {
-                film.setGenres(new ArrayList<>());
+
+        for (Map<String, Object> genreMap : maps) {
+            Long filmId = (Long) genreMap.get("FILM_GENRES_ID");
+            Film film = filmMap.get(filmId);
+
+            if (film != null) {
+                Genre genre = new Genre(
+                        (Integer) genreMap.get("GENRES_G_ID"),
+                        (String) genreMap.get("GENRES_NAME")
+                );
+
+                if (!film.getGenres().contains(genre)) {
+                    film.getGenres().add(genre);
+                }
             }
-            film.getGenres().add(new Genre((Integer) genre.get("FILM_GENRES_G_ID"), (String) genre.get(
-                    "GENRES_NAME")));
         }
     }
+
 
 }

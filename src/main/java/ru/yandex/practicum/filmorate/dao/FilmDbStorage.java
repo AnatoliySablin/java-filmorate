@@ -186,7 +186,7 @@ public class FilmDbStorage implements FilmDao {
         } catch (DataAccessException e) {
             throw new NotFoundException(e.getMessage());
         }
-        if (film.getGenres().size() > 0) {
+        if (!film.getGenres().isEmpty()) {
             final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_G_ID) VALUES ( ?, " +
                     "? );";
             try {
@@ -213,29 +213,16 @@ public class FilmDbStorage implements FilmDao {
         jdbcTemplate.update(query, film.getName(), film.getDescription(), film.getReleaseDate(),
                 film.getDuration(), film.getMpa().getId(), film.getId());
         film.setMpa(mpaDao.getMpaById(film.getMpa().getId()));
-
-        final String sqlQueryListGenges = "select FILM_GENRES_G_ID from FILM_GENRES" +
-                " where FILM_GENRES_ID = ?";
-        List<Long> listIdGenres = jdbcTemplate.queryForList(sqlQueryListGenges,
-                new Long[]{Long.parseLong(film.getId().toString())}, Long.class);
-
-        final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_ID = ?" +
-                " and FILM_GENRES_G_ID = ?";
-
-        for (Long idGenre : listIdGenres) {
-            jdbcTemplate.update(sqlQueryGenreDeleteById, Long.parseLong(film.getId().toString()), idGenre);
-        }
-
+        final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_ID = ?";
+        jdbcTemplate.update(sqlQueryGenreDeleteById, Long.parseLong(film.getId().toString()));
         if (!film.getGenres().isEmpty()) {
-            Set<Long> myList = new HashSet<Long>();
-            for (Genre genreId : film.getGenres()) {
-                myList.add((long) genreId.getId());
-            }
+            Set<Genre> myList = new HashSet<>(film.getGenres());
             final String sqlQueryFilmGenres = "insert into FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_G_ID)" +
                     " values (?, ?)";
-            for (Long aLong : myList) {
-                jdbcTemplate.update(sqlQueryFilmGenres, film.getId(), aLong);
+            for (Genre aLong : myList) {
+                jdbcTemplate.update(sqlQueryFilmGenres, film.getId(), aLong.getId());
             }
+            film.setGenres(myList.stream().toList());
         }
 
         return Long.parseLong(film.getId().toString());
