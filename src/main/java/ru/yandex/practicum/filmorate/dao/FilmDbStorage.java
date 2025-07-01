@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.dao;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -172,6 +172,7 @@ public class FilmDbStorage implements FilmDao {
 
     private Long writingToTableWithoutId(Film film, String query) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
+
         try {
             jdbcTemplate.update(connection -> {
                 PreparedStatement ps = connection
@@ -183,31 +184,37 @@ public class FilmDbStorage implements FilmDao {
                 ps.setLong(5, film.getMpa().getId());
                 return ps;
             }, keyHolder);
-        } catch (DataAccessException e) {
-            throw new NotFoundException(e.getMessage());
-        }
-        if (!film.getGenres().isEmpty()) {
-            final String sqlQuery = "INSERT INTO FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_G_ID) VALUES ( ?, " +
-                    "? );";
+
+            final String sqlQueryGenreDeleteById = "delete from FILM_GENRES where FILM_GENRES_ID = ?";
+            jdbcTemplate.update(sqlQueryGenreDeleteById, keyHolder.getKey());
+
             try {
-                jdbcTemplate.batchUpdate(sqlQuery, new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setLong(1, Long.parseLong(Objects.requireNonNull(keyHolder.getKey()).toString()));
-                        ps.setLong(2, film.getGenres().get(i).getId());
+                if (!film.getGenres().isEmpty()) {
+                    Set<Genre> myList = new HashSet<>(film.getGenres());
+                    final String sqlQueryFilmGenres = "insert into FILM_GENRES(FILM_GENRES_ID, FILM_GENRES_G_ID) " +
+                            "values (?, ?)";
+
+                    for (Genre genre : myList) {
+                        try {
+                            jdbcTemplate.update(sqlQueryFilmGenres, keyHolder.getKey(), genre.getId());
+                        } catch (DataIntegrityViolationException e) {
+                            throw new NotFoundException("Жанр с ID " + genre.getId() + " не существует");
+                        }
                     }
 
-                    @Override
-                    public int getBatchSize() {
-                        return film.getGenres().size();
-                    }
-                });
-            } catch (DataAccessException e) {
-                throw new NotFoundException(e.getMessage());
+                    film.setGenres(myList.stream().toList());
+                }
+            } catch (DataIntegrityViolationException e) {
+                throw new NotFoundException("Ошибка при сохранении связей фильм-жанр: " + e.getMessage());
             }
+
+        } catch (DataAccessException e) {
+            throw new NotFoundException("Ошибка при сохранении фильма: " + e.getMessage());
         }
-        return Long.parseLong(Objects.requireNonNull(keyHolder.getKey()).toString());
+
+        return keyHolder.getKey().longValue();
     }
+
 
     private Long writingToTableById(Film film, String query) {
         jdbcTemplate.update(query, film.getName(), film.getDescription(), film.getReleaseDate(),
