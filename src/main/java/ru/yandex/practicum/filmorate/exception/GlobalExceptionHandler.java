@@ -35,6 +35,12 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(e.getMessage());
     }
 
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ValidationException handleException(ConstraintViolationException exception) {
+        return new ValidationException(exception.getMessage());
+    }
+
     public class ErrorResponse {
         private final String error;
 
